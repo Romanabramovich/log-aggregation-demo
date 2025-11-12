@@ -712,7 +712,7 @@ function completeSimulation() {
     // Update UI
     document.getElementById('startBtn').disabled = false;
     document.getElementById('stopBtn').disabled = true;
-    updateStatus('normal', 'Simulation Complete ✓');
+    updateStatus('normal', 'Simulation Complete');
     updateProgress(100, 100, 'Complete', 100);
     
     // Auto-hide progress after 3 seconds
@@ -740,25 +740,24 @@ function updateStatus(status, text) {
 // ============================================================================
 
 function initializeUI() {
-    // Populate scenario list
-    const scenarioList = document.getElementById('scenarioList');
+    // Populate scenario dropdown
+    const scenarioSelect = document.getElementById('scenarioSelect');
     
     for (const [key, scenario] of Object.entries(scenarios)) {
-        const card = document.createElement('div');
-        card.className = 'scenario-card';
-        card.dataset.scenario = key;
-        card.innerHTML = `
-            <strong>${scenario.name}</strong><br>
-            <small class="text-muted">${scenario.description}</small><br>
-            <small class="text-muted">⏱️ ${scenario.duration}s</small>
-        `;
-        
-        card.addEventListener('click', () => selectScenario(key));
-        scenarioList.appendChild(card);
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `${scenario.name} - ${scenario.description} (${scenario.duration}s)`;
+        scenarioSelect.appendChild(option);
     }
     
     // Select first scenario by default
+    scenarioSelect.value = 'basic';
     selectScenario('basic');
+    
+    // Add change listener for scenario selection
+    scenarioSelect.addEventListener('change', (e) => {
+        selectScenario(e.target.value);
+    });
     
     // Bind event listeners
     document.getElementById('startBtn').addEventListener('click', startSimulation);
@@ -778,16 +777,6 @@ function initializeUI() {
 
 function selectScenario(scenarioKey) {
     currentScenario = scenarioKey;
-    
-    // Update UI
-    document.querySelectorAll('.scenario-card').forEach(card => {
-        card.classList.remove('active');
-    });
-    
-    const selectedCard = document.querySelector(`[data-scenario="${scenarioKey}"]`);
-    if (selectedCard) {
-        selectedCard.classList.add('active');
-    }
 }
 
 // ============================================================================
