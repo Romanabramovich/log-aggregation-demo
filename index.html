@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs & Found - Demo Mode</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --error-color: #dc3545;
+            --warn-color: #ffc107;
+            --info-color: #02a942;
+            --debug-color: #007fed;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Demo Banner */
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 0;
+        }
+
+        /* Navbar (matching existing UI) */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        /* Stats Cards (matching existing UI) */
+        .stats-card {
+            border-left: 4px solid;
+        }
+        .stats-card.error {
+            border-left-color: var(--error-color);
+        }
+        .stats-card.warn {
+            border-left-color: var(--warn-color);
+        }
+        .stats-card.info {
+            border-left-color: var(--info-color);
+        }
+        .stats-card.debug {
+            border-left-color: var(--debug-color);
+        }
+
+        /* Filter Panel (matching existing UI) */
+        .filter-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* Logs Container (matching existing UI) */
+        .logs-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Log Levels (matching existing UI) */
+        .log-level {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .log-level-ERROR {
+            background-color: var(--error-color);
+            color: white;
+        }
+        .log-level-WARN {
+            background-color: var(--warn-color);
+            color: #000;
+        }
+        .log-level-INFO {
+            background-color: var(--info-color);
+            color: #000;
+        }
+        .log-level-DEBUG {
+            background-color: var(--debug-color);
+            color: white;
+        }
+
+        /* Log Row Styles (matching existing UI) */
+        .log-row:hover {
+            background-color: #f0f0f0;
+        }
+
+        .timestamp {
+            font-family: "Courier New", monospace;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .log-message {
+            font-family: "Courier New", monospace;
+            font-size: 0.9em;
+        }
+
+        /* Animation for new log rows */
+        .log-row-new {
+            animation: highlight 2s ease-in-out;
+        }
+
+        @keyframes highlight {
+            0%, 100% {
+                background-color: transparent;
+            }
+            10% {
+                background-color: rgba(25, 135, 84, 0.2);
+            }
+        }
+
+        /* Scenario Selection */
+        .scenario-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .scenario-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .scenario-card.active {
+            border-color: #667eea;
+            background-color: #f0f4ff;
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-normal { background-color: #02a942; }
+        .status-spike { background-color: #dc3545; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Banner -->
+    <div class="demo-banner">
+        <strong>🎭 INTERACTIVE DEMO MODE</strong> - This is a simulation. All logs are generated in your browser.
+    </div>
+
+    <!-- Navigation (matching existing UI) -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <strong>Logs & Found</strong>
+            </a>
+            <span class="navbar-text text-white-50">
+                Monitor and search for any log in real-time
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <!-- Statistics Cards (matching existing UI) -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card error">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">ERRORS</h6>
+                        <h2 class="card-title mb-0" id="statErrors">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card warn">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">WARNINGS</h6>
+                        <h2 class="card-title mb-0" id="statWarnings">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card info">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">INFO</h6>
+                        <h2 class="card-title mb-0" id="statInfo">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card debug">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">DEBUG</h6>
+                        <h2 class="card-title mb-0" id="statDebug">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Controls -->
+        <div class="filter-panel">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label"><strong>📊 Scenario Selection</strong></label>
+                    <div id="scenarioList">
+                        <!-- Scenarios populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label"><strong>🎬 Controls</strong></label>
+                    <div class="d-grid gap-2">
+                        <button id="startBtn" class="btn btn-success btn-lg">
+                            ▶️ Start Simulation
+                        </button>
+                        <button id="stopBtn" class="btn btn-danger" disabled>
+                            ⏹️ Stop Simulation
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <span class="status-indicator status-normal" id="statusDot"></span>
+                        <strong id="statusText">Ready</strong>
+                    </div>
+                    <!-- Progress -->
+                    <div class="mt-3" id="progressContainer" style="display: none;">
+                        <div class="progress">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small id="progressText" class="text-muted">Starting...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Panel (matching production UI) -->
+        <div class="filter-panel">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Log Level</label>
+                    <select id="filterLevel" class="form-select">
+                        <option value="">All Levels</option>
+                        <option value="ERROR">ERROR</option>
+                        <option value="WARN">WARN</option>
+                        <option value="INFO">INFO</option>
+                        <option value="DEBUG">DEBUG</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Source</label>
+                    <select id="filterSource" class="form-select">
+                        <option value="">All Sources</option>
+                        <!-- Options populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Application</label>
+                    <select id="filterApplication" class="form-select">
+                        <option value="">All Applications</option>
+                        <!-- Options populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input type="text" id="filterSearch" class="form-control" placeholder="Search messages...">
+                </div>
+                
+                <div class="col-12">
+                    <button type="button" id="applyFilters" class="btn btn-primary">Apply Filters</button>
+                    <button type="button" id="clearFilters" class="btn btn-secondary">Clear</button>
+                    <span class="badge bg-info text-dark ms-3" id="filterStatus">
+                        Showing all logs
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Table (matching existing UI) -->
+        <div class="logs-container">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 180px;">Timestamp</th>
+                        <th style="width: 80px;">Level</th>
+                        <th style="width: 150px;">Source</th>
+                        <th style="width: 150px;">Application</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody id="logsTableBody">
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-5">
+                            <h4>👆 Select a scenario and click "Start Simulation"</h4>
+                            <p>Watch logs appear in real-time as the scenario unfolds</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Demo Logic -->
+    <script src="demo.js"></script>
+</body>
+</html>
+
